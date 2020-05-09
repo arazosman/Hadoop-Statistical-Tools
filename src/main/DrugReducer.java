@@ -16,7 +16,7 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 {
 	public void reduce(Text key, Iterable<DrugWritable> values, Context context) throws IOException, InterruptedException
 	{
-		HashMap<String, AbstractMap.SimpleEntry<Long, Long>> cities = generateHashMap(values, context);
+		HashMap<String, AbstractMap.SimpleEntry<Long, Long>> cities = generateHashMap(values);
 		ReducerType reducerType = context.getConfiguration().getEnum("reducerType", ReducerType.Sum);
 
 		switch (reducerType)
@@ -39,7 +39,7 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 		}
 	}
 	
-	private HashMap<String, AbstractMap.SimpleEntry<Long, Long>> generateHashMap(Iterable<DrugWritable> values, Context context) 
+	private HashMap<String, AbstractMap.SimpleEntry<Long, Long>> generateHashMap(Iterable<DrugWritable> values) 
 	{
 		HashMap<String, AbstractMap.SimpleEntry<Long, Long>> cities = new HashMap<String, AbstractMap.SimpleEntry<Long, Long>>();
 
