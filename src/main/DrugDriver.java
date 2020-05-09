@@ -22,7 +22,7 @@ public class DrugDriver
 		Path input_dir = new Path(files[0]);
 		Path output_dir = new Path(files[1]);
 
-		conf.setEnum("reducerType", ReducerType.MinMax);
+		conf.setEnum("reducerType", ReducerType.Std);
 
 		Job job = Job.getInstance(conf, "PainPills");
 		job.setJarByClass(DrugDriver.class);

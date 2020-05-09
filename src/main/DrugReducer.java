@@ -65,7 +65,7 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 			for (long val: city.getValue())
 				sum += val;
 	
-			context.write(key, new Text(city.getKey() + ": " + sum));
+			context.write(key, new Text(city.getKey() + ": SUM -> " + sum));
 		}
 	}
 	
@@ -80,7 +80,7 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 
 			double avg = (double)sum / (double)city.getValue().size();
 
-			context.write(key, new Text(city.getKey() + ": " + avg));
+			context.write(key, new Text(city.getKey() + ": AVG -> " + avg));
 		}
 	}
 	
@@ -91,7 +91,7 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 			int midPoint = (city.getValue().size() - 1) / 2;
 			long median = city.getValue().get(midPoint);
 
-			context.write(key, new Text(city.getKey() + ": " + median));
+			context.write(key, new Text(city.getKey() + ": MED -> " + median));
 		}
 	}
 	
@@ -102,7 +102,7 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 			long min = Collections.min(city.getValue());
 			long max = Collections.max(city.getValue());
 			
-			context.write(key, new Text(city.getKey() + ": " + min + " - " + max));
+			context.write(key, new Text(city.getKey() + ": MIN-MAX -> " + min + " - " + max));
 		}
 	}
 	
@@ -110,7 +110,26 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 	{
 		for (Map.Entry<String, List<Long>> city: cities.entrySet())
 		{
+			double std = 0;
+	
+			if (city.getValue().size() > 1)
+			{
+				long sum = 0;
+				
+				for (long val: city.getValue())
+					sum += val;
 
+				double avg = (double)sum / (double)city.getValue().size();
+				double var = 0;
+				
+				for (long val: city.getValue())
+					var += Math.pow(val - avg, 2);
+				
+				var /= (city.getValue().size() - 1);
+				std = Math.sqrt(var);
+			}
+
+			context.write(key, new Text(city.getKey() + ": STD -> " + std));
 		}
 	}
 }
