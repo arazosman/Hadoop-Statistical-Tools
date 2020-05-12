@@ -10,7 +10,7 @@ import org.apache.hadoop.mapreduce.Mapper;
  * Mapper class for pain pills analysis with big data methods in the USA and some other countries.
  * */
 
-public class DrugMapper extends Mapper<LongWritable, Text, Text, DrugWritable>
+public class DataMapper extends Mapper<LongWritable, Text, Text, DataWritable>
 {
 	// Mapping the (lineNumber, fullLine) key-pair to (drugName, drugFeatures) key-pair:
 	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException
@@ -25,7 +25,7 @@ public class DrugMapper extends Mapper<LongWritable, Text, Text, DrugWritable>
 
 			// City feature: #2 column in the file.
 			// Sold units feature: #3 column in the file.
-			DrugWritable data = new DrugWritable(lineWords[1], (long)Double.parseDouble(lineWords[2]));
+			DataWritable data = new DataWritable(lineWords[1], (long)Double.parseDouble(lineWords[2]));
 
 			// Mapping the new key-value pair: 
 			context.write(drugName, data);

@@ -12,7 +12,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
  * Driver class for pain pills analysis with big data methods in the USA and some other countries.
  * */
 
-public class DrugDriver
+public class DataDriver
 {
 	public static void main(String[] args) throws Exception
 	{
@@ -22,16 +22,18 @@ public class DrugDriver
 		Path input_dir = new Path(files[0]);
 		Path output_dir = new Path(files[1]);
 
-		conf.setEnum("reducerType", ReducerType.Std);
+		conf.set("targetColumn", files[2]);
+		conf.set("byColumns", files[3]);
+		conf.set("reducerType", files[4]);
 
 		Job job = Job.getInstance(conf, "PainPills");
-		job.setJarByClass(DrugDriver.class);
+		job.setJarByClass(DataDriver.class);
 
-		job.setMapperClass(DrugMapper.class);
-		job.setReducerClass(DrugReducer.class);
+		job.setMapperClass(DataMapper.class);
+		job.setReducerClass(DataReducer.class);
 
 		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(DrugWritable.class);
+		job.setMapOutputValueClass(DataWritable.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 
