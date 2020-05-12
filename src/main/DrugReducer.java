@@ -32,8 +32,11 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 			case Median:
 				medianReducer(key, context, cities);
 				break;
-			case MinMax:
-				minMaxReducer(key, context, cities);
+			case Min:
+				minReducer(key, context, cities);
+				break;
+			case Max:
+				maxReducer(key, context, cities);
 				break;
 			case Std:
 				stdReducer(key, context, cities);
@@ -60,10 +63,7 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 	{
 		for (Map.Entry<String, List<Long>> city: cities.entrySet())
 		{
-			long sum = 0;
-			
-			for (long val: city.getValue())
-				sum += val;
+			long sum = getSum(city.getValue());
 	
 			context.write(key, new Text(city.getKey() + ": SUM -> " + sum));
 		}
@@ -73,12 +73,7 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 	{
 		for (Map.Entry<String, List<Long>> city: cities.entrySet())
 		{
-			long sum = 0;
-			
-			for (long val: city.getValue())
-				sum += val;
-
-			double avg = (double)sum / (double)city.getValue().size();
+			double avg = getAverage(city.getValue());
 
 			context.write(key, new Text(city.getKey() + ": AVG -> " + avg));
 		}
@@ -95,14 +90,23 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 		}
 	}
 	
-	private void minMaxReducer(Text key, Context context, HashMap<String, List<Long>> cities) throws IOException, InterruptedException
+	private void minReducer(Text key, Context context, HashMap<String, List<Long>> cities) throws IOException, InterruptedException
 	{
 		for (Map.Entry<String, List<Long>> city: cities.entrySet())
 		{
-			long min = Collections.min(city.getValue());
-			long max = Collections.max(city.getValue());
-			
-			context.write(key, new Text(city.getKey() + ": MIN-MAX -> " + min + " - " + max));
+			long min = getMin(city.getValue());
+
+			context.write(key, new Text(city.getKey() + ": MIN -> " + min));
+		}
+	}
+	
+	private void maxReducer(Text key, Context context, HashMap<String, List<Long>> cities) throws IOException, InterruptedException
+	{
+		for (Map.Entry<String, List<Long>> city: cities.entrySet())
+		{
+			long max = getMax(city.getValue());		
+
+			context.write(key, new Text(city.getKey() + ": MAX -> " + max));
 		}
 	}
 	
@@ -114,12 +118,7 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 	
 			if (city.getValue().size() > 1)
 			{
-				long sum = 0;
-				
-				for (long val: city.getValue())
-					sum += val;
-
-				double avg = (double)sum / (double)city.getValue().size();
+				double avg = getAverage(city.getValue());
 				double var = 0;
 				
 				for (long val: city.getValue())
@@ -131,5 +130,49 @@ public class DrugReducer extends Reducer<Text, DrugWritable, Text, Text>
 
 			context.write(key, new Text(city.getKey() + ": STD -> " + std));
 		}
+	}
+	
+	private long getSum(List<Long> arr)
+	{
+		long sum = 0;
+		
+		for (long val: arr)
+			sum += val;
+		
+		return sum;
+	}
+	
+	private double getAverage(List<Long> arr)
+	{
+		long sum = getSum(arr);
+		return (double)sum / (double)arr.size();
+	}
+	
+	private long getMax(List<Long> arr)
+	{
+		if (arr.size() == 0)
+			return 0;
+		
+		long max = arr.get(0);
+		
+		for (int i = 1; i < arr.size(); ++i)
+			if (arr.get(i) > max)
+				max = arr.get(i);
+		
+		return max;
+	}
+	
+	private long getMin(List<Long> arr)
+	{
+		if (arr.size() == 0)
+			return 0;
+		
+		long min = arr.get(0);
+		
+		for (int i = 1; i < arr.size(); ++i)
+			if (arr.get(i) < min)
+				min = arr.get(i);
+		
+		return min;
 	}
 }
