@@ -1,188 +1,139 @@
 package main;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Iterator;
 
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
 /*
- * Reducer class for pain pills analysis with big data methods in the USA and other countries.
+ * Reducer class for the Hadoop Project.
  * */
 
-public class DataReducer extends Reducer<Text, DataWritable, Text, Text>
+public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 {
-	public void reduce(Text key, Iterable<DataWritable> values, Context context) throws IOException, InterruptedException
+	public void reduce(Text key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException
 	{
-		int targetColumn = Integer.parseInt(context.getConfiguration().get("targetColumn"));
-		List<Integer> dependentColumns = getDependentColumns(context.getConfiguration().get("byColumns"));
 		String reducerType = context.getConfiguration().get("reducerType");
-		
-		HashMap<String, List<Long>> dataMap = generateHashMap(values, targetColumn, dependentColumns);
+		Text outputValue;
 
 		switch (reducerType)
 		{
 			case "sum":
-				sumReducer(key, context, dataMap);
+				outputValue = new Text(String.valueOf(getSum(values)));
 				break;
 			case "min":
-				minReducer(key, context, dataMap);
+				outputValue = new Text(String.valueOf(getMin(values)));
 				break;
 			case "max":
-				maxReducer(key, context, dataMap);
+				outputValue = new Text(String.valueOf(getMax(values)));
 				break;
 			case "avg":
-				averageReducer(key, context, dataMap);
+				outputValue = new Text(String.valueOf(getAverage(values)));
 				break;
 			case "med":
-				medianReducer(key, context, dataMap);
+				outputValue = new Text(String.valueOf(getMedian(values)));
+				break;
+			case "cnt":
+				outputValue = new Text();
+				break;
+			case "rnd":
+				outputValue = new Text();
+				break;
+			case "var":
+				outputValue = new Text();
 				break;
 			default:
-				stdReducer(key, context, dataMap);
+				outputValue = new Text(String.valueOf(getStdDrv(values)));
 				break;
 		}
-	}
-	
-	private List<Integer> getDependentColumns(String str)
-	{
-		List<Integer> columns = new ArrayList<Integer>();
 		
-		return columns;
-	}
-	
-	private HashMap<String, List<Long>> generateHashMap(Iterable<DataWritable> values, Integer targetColumn, List<Integer> dependentColumns)
-	{
-		HashMap<String, List<Long>> dataMap = new HashMap<String, List<Long>>();
-		
-		for (DataWritable value: values)
-		{
-			if (!dataMap.containsKey(value.getKey()))
-				dataMap.put(value.getKey(), new ArrayList<Long>());
-
-			dataMap.get(value.getKey()).add(value.getValue());
-		}
-		
-		return dataMap;
+		context.write(key, outputValue);
 	}
 
-	private void sumReducer(Text key, Context context, HashMap<String, List<Long>> dataMap) throws IOException, InterruptedException
+	private int getSize(Iterable<DoubleWritable> values)
 	{
-		for (Map.Entry<String, List<Long>> curr: dataMap.entrySet())
-		{
-			long sum = getSum(curr.getValue());
-	
-			context.write(key, new Text(curr.getKey() + ": SUM -> " + sum));
-		}
-	}
-	
-	private void averageReducer(Text key, Context context, HashMap<String, List<Long>> dataMap) throws IOException, InterruptedException
-	{
-		for (Map.Entry<String, List<Long>> data: dataMap.entrySet())
-		{
-			double avg = getAverage(data.getValue());
+		int size = 0;
 
-			context.write(key, new Text(data.getKey() + ": AVG -> " + avg));
-		}
-	}
-	
-	private void medianReducer(Text key, Context context, HashMap<String, List<Long>> dataMap) throws IOException, InterruptedException
-	{
-		for (Map.Entry<String, List<Long>> data: dataMap.entrySet())
-		{
-			int midPoint = (data.getValue().size() - 1) / 2;
-			long median = data.getValue().get(midPoint);
+		for (Iterator<DoubleWritable> iterator = values.iterator(); iterator.hasNext(); iterator.next())
+			++size;
 
-			context.write(key, new Text(data.getKey() + ": MED -> " + median));
-		}
+		return size;
 	}
-	
-	private void minReducer(Text key, Context context, HashMap<String, List<Long>> dataMap) throws IOException, InterruptedException
-	{
-		for (Map.Entry<String, List<Long>> data: dataMap.entrySet())
-		{
-			long min = getMin(data.getValue());
 
-			context.write(key, new Text(data.getKey() + ": MIN -> " + min));
-		}
-	}
-	
-	private void maxReducer(Text key, Context context, HashMap<String, List<Long>> dataMap) throws IOException, InterruptedException
+	private double getSum(Iterable<DoubleWritable> values)
 	{
-		for (Map.Entry<String, List<Long>> data: dataMap.entrySet())
-		{
-			long max = getMax(data.getValue());		
+		double sum = 0;
 
-			context.write(key, new Text(data.getKey() + ": MAX -> " + max));
-		}
-	}
-	
-	private void stdReducer(Text key, Context context, HashMap<String, List<Long>> dataMap) throws IOException, InterruptedException
-	{
-		for (Map.Entry<String, List<Long>> data: dataMap.entrySet())
-		{
-			double std = 0;
-	
-			if (data.getValue().size() > 1)
-			{
-				double avg = getAverage(data.getValue());
-				double var = 0;
-				
-				for (long val: data.getValue())
-					var += Math.pow(val - avg, 2);
-				
-				var /= (data.getValue().size() - 1);
-				std = Math.sqrt(var);
-			}
+		for (DoubleWritable val: values)
+			sum += val.get();
 
-			context.write(key, new Text(data.getKey() + ": STD -> " + std));
-		}
-	}
-	
-	private long getSum(List<Long> arr)
-	{
-		long sum = 0;
-		
-		for (long val: arr)
-			sum += val;
-		
 		return sum;
 	}
-	
-	private double getAverage(List<Long> arr)
-	{
-		long sum = getSum(arr);
 
-		return (double)sum / (double)arr.size();
-	}
-	
-	private long getMax(List<Long> arr)
+	private double getMin(Iterable<DoubleWritable> values)
 	{
-		if (arr.size() == 0)
-			return 0;
-		
-		long max = arr.get(0);
-		
-		for (int i = 1; i < arr.size(); ++i)
-			if (arr.get(i) > max)
-				max = arr.get(i);
-		
+		double min = Double.MAX_VALUE;
+
+		for (DoubleWritable val: values)
+			if (val.get() < min)
+				min = val.get();
+
+		return min;
+	}
+
+	private double getMax(Iterable<DoubleWritable> values)
+	{
+		double max = 0;
+
+		for (DoubleWritable val: values)
+			if (val.get() > max)
+				max = val.get();
+
 		return max;
 	}
-	
-	private long getMin(List<Long> arr)
+
+	private double getAverage(Iterable<DoubleWritable> values)
 	{
-		if (arr.size() == 0)
+		double avg = getSum(values) / getSize(values);
+
+		return avg;
+	}
+
+	private double getMedian(Iterable<DoubleWritable> values)
+	{
+		int counter = 0, size = getSize(values), edge = (size - 1) / 2;
+		double median = 0;
+
+		Iterator<DoubleWritable> iterator = values.iterator();
+
+		while (counter <= edge && iterator.hasNext())
+		{
+			median = iterator.next().get();
+			++counter;
+		}
+
+		if (size % 2 == 0)
+			median = (median + iterator.next().get()) / 2;
+
+		return median;
+	}
+
+	private double getStdDrv(Iterable<DoubleWritable> values)
+	{
+		int size = getSize(values);
+
+		if (size < 2)
 			return 0;
-		
-		long min = arr.get(0);
-		
-		for (int i = 1; i < arr.size(); ++i)
-			if (arr.get(i) < min)
-				min = arr.get(i);
-		
-		return min;
+
+		double avg = getAverage(values);
+		double var = 0;
+
+		for (DoubleWritable val: values)
+			var += Math.pow(val.get() - avg, 2);
+
+		var /= (size - 1);
+		return Math.sqrt(var);
 	}
 }
