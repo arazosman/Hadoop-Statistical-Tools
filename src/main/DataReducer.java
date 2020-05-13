@@ -18,10 +18,14 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 {
 	public void reduce(Text key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException
 	{
+		// Transforming the Iterable list to ArrayList for convenience:
 		List<Double> numbers = toArrayList(values);
+
+		// Getting the reducer type from the command line input:
 		String reducerType = context.getConfiguration().get("reducerType");
 		Text outputValue;
 
+		// Setting the output value according to the reducer type:
 		switch (reducerType)
 		{
 			case "sum":
@@ -34,28 +38,30 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 				outputValue = new Text("MAX: " + String.valueOf(getMax(numbers)));
 				break;
 			case "avg":
-				outputValue = new Text("AVERAGE: " + String.valueOf(getAverage(numbers)));
+				outputValue = new Text("AVG: " + String.valueOf(getAverage(numbers)));
 				break;
 			case "med":
-				outputValue = new Text("MEDIAN: " + String.valueOf(getMedian(numbers)));
+				outputValue = new Text("MED: " + String.valueOf(getMedian(numbers)));
 				break;
 			case "mod":
-				outputValue = new Text("MODE: " + String.valueOf(getMode(numbers)));
+				outputValue = new Text("MOD: " + String.valueOf(getMode(numbers)));
 				break;
 			case "cnt":
-				outputValue = new Text("COUNT: " + String.valueOf(numbers.size()));
+				outputValue = new Text("CNT: " + String.valueOf(numbers.size()));
 				break;
 			case "var":
-				outputValue = new Text("VARIANCE: " + String.valueOf(getVariance(numbers)));
+				outputValue = new Text("VAR: " + String.valueOf(getVariance(numbers)));
 				break;
 			default:
-				outputValue = new Text("STD: DRV.: " + String.valueOf(getStdDrv(numbers)));
+				outputValue = new Text("STD: " + String.valueOf(getStdDrv(numbers)));
 				break;
 		}
 
+		// Writing the final key-value:
 		context.write(key, outputValue);
 	}
-	
+
+	// Transforming an Iterable list to ArrayList:
 	private List<Double> toArrayList(Iterable<DoubleWritable> values)
 	{
 		List<Double> list = new ArrayList<Double>();
@@ -66,6 +72,7 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 		return list;
 	}
 
+	// Calculating the sum of an ArrayList:
 	private double getSum(List<Double> numbers)
 	{
 		double sum = 0;
@@ -76,6 +83,7 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 		return sum;
 	}
 
+	// Finding the minimum element of an ArrayList:
 	private double getMin(List<Double> numbers)
 	{
 		double min = Double.MAX_VALUE;
@@ -87,6 +95,7 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 		return min;
 	}
 
+	// Finding the maximum element of an ArrayList:
 	private double getMax(List<Double> numbers)
 	{
 		double max = 0;
@@ -98,11 +107,13 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 		return max;
 	}
 
+	// Calculating the mean of an ArrayList:
 	private double getAverage(List<Double> numbers)
 	{
 		return getSum(numbers) / numbers.size();
 	}
 
+	// Calculating the median of an ArrayList:
 	private double getMedian(List<Double> numbers)
 	{
 		if (numbers.size() % 2 == 1)
@@ -111,6 +122,7 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 		return (numbers.get(numbers.size() / 2) + numbers.get((numbers.size() / 2) + 1)) / 2;
 	}
 
+	// Calculating the mode (maximum frequency) of an ArrayList:
 	private double getMode(List<Double> numbers)
 	{
 		HashMap<Double, Integer> map = new HashMap<Double, Integer>();
@@ -136,6 +148,7 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 		return mode;
 	}
 
+	// Calculating the variance of an ArrayList:
 	private double getVariance(List<Double> numbers)
 	{
 		if (numbers.size() < 2)
@@ -152,6 +165,7 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 		return var;
 	}
 
+	// Calculating the standard derivation of an ArrayList:
 	private double getStdDrv(List<Double> numbers)
 	{
 		double std = Math.sqrt(getVariance(numbers));
