@@ -1,7 +1,10 @@
 package main;
 
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
@@ -15,125 +18,144 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 {
 	public void reduce(Text key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException
 	{
+		List<Double> numbers = toArrayList(values);
 		String reducerType = context.getConfiguration().get("reducerType");
 		Text outputValue;
 
 		switch (reducerType)
 		{
 			case "sum":
-				outputValue = new Text(String.valueOf(getSum(values)));
+				outputValue = new Text(String.valueOf(getSum(numbers)));
 				break;
 			case "min":
-				outputValue = new Text(String.valueOf(getMin(values)));
+				outputValue = new Text(String.valueOf(getMin(numbers)));
 				break;
 			case "max":
-				outputValue = new Text(String.valueOf(getMax(values)));
+				outputValue = new Text(String.valueOf(getMax(numbers)));
 				break;
 			case "avg":
-				outputValue = new Text(String.valueOf(getAverage(values)));
+				outputValue = new Text(String.valueOf(getAverage(numbers)));
 				break;
 			case "med":
-				outputValue = new Text(String.valueOf(getMedian(values)));
+				outputValue = new Text(String.valueOf(getMedian(numbers)));
+				break;
+			case "mod":
+				outputValue = new Text(String.valueOf(getMode(numbers)));
 				break;
 			case "cnt":
-				outputValue = new Text();
-				break;
-			case "rnd":
-				outputValue = new Text();
+				outputValue = new Text(String.valueOf(numbers.size()));
 				break;
 			case "var":
-				outputValue = new Text();
+				outputValue = new Text(String.valueOf(getVariance(numbers)));
 				break;
 			default:
-				outputValue = new Text(String.valueOf(getStdDrv(values)));
+				outputValue = new Text(String.valueOf(getStdDrv(numbers)));
 				break;
 		}
-		
+
 		context.write(key, outputValue);
 	}
-
-	private int getSize(Iterable<DoubleWritable> values)
+	
+	private List<Double> toArrayList(Iterable<DoubleWritable> values)
 	{
-		int size = 0;
+		List<Double> list = new ArrayList<Double>();
+		
+		for (DoubleWritable val: values)
+			list.add(val.get());
 
-		for (Iterator<DoubleWritable> iterator = values.iterator(); iterator.hasNext(); iterator.next())
-			++size;
-
-		return size;
+		return list;
 	}
 
-	private double getSum(Iterable<DoubleWritable> values)
+	private double getSum(List<Double> numbers)
 	{
 		double sum = 0;
 
-		for (DoubleWritable val: values)
-			sum += val.get();
+		for (Double val: numbers)
+			sum += val;
 
 		return sum;
 	}
 
-	private double getMin(Iterable<DoubleWritable> values)
+	private double getMin(List<Double> numbers)
 	{
 		double min = Double.MAX_VALUE;
 
-		for (DoubleWritable val: values)
-			if (val.get() < min)
-				min = val.get();
+		for (double val: numbers)
+			if (val < min)
+				min = val;
 
 		return min;
 	}
 
-	private double getMax(Iterable<DoubleWritable> values)
+	private double getMax(List<Double> numbers)
 	{
 		double max = 0;
 
-		for (DoubleWritable val: values)
-			if (val.get() > max)
-				max = val.get();
+		for (double val: numbers)
+			if (val > max)
+				max = val;
 
 		return max;
 	}
 
-	private double getAverage(Iterable<DoubleWritable> values)
+	private double getAverage(List<Double> numbers)
 	{
-		double avg = getSum(values) / getSize(values);
-
-		return avg;
+		return getSum(numbers) / numbers.size();
 	}
 
-	private double getMedian(Iterable<DoubleWritable> values)
+	private double getMedian(List<Double> numbers)
 	{
-		int counter = 0, size = getSize(values), edge = (size - 1) / 2;
-		double median = 0;
+		if (numbers.size() % 2 == 1)
+			return numbers.get(numbers.size() / 2);
 
-		Iterator<DoubleWritable> iterator = values.iterator();
+		return (numbers.get(numbers.size() / 2) + numbers.get((numbers.size() / 2) + 1)) / 2;
+	}
 
-		while (counter <= edge && iterator.hasNext())
+	private double getMode(List<Double> numbers)
+	{
+		HashMap<Double, Integer> map = new HashMap<Double, Integer>();
+
+		for (Double val: numbers)
 		{
-			median = iterator.next().get();
-			++counter;
+			if (!map.containsKey(val))
+				map.put(val, 1);
+			else
+				map.replace(val, map.get(val) + 1);
 		}
 
-		if (size % 2 == 0)
-			median = (median + iterator.next().get()) / 2;
+		double mode = 0;
+		int maxFreq = 0;
 
-		return median;
+		for (Map.Entry<Double, Integer> number: map.entrySet())
+			if (number.getValue() > maxFreq)
+			{
+				mode = number.getKey();
+				maxFreq = number.getValue();
+			}
+
+		return mode;
 	}
 
-	private double getStdDrv(Iterable<DoubleWritable> values)
+	private double getVariance(List<Double> numbers)
 	{
-		int size = getSize(values);
-
-		if (size < 2)
+		if (numbers.size() < 2)
 			return 0;
 
-		double avg = getAverage(values);
-		double var = 0;
+		double avg = getAverage(numbers);
+		double mse = 0;
 
-		for (DoubleWritable val: values)
-			var += Math.pow(val.get() - avg, 2);
+		for (double val: numbers)
+			mse += Math.pow(val - avg, 2);
 
-		var /= (size - 1);
-		return Math.sqrt(var);
+		double var = mse / (numbers.size() - 1);
+
+		return var;
+	}
+
+	private double getStdDrv(List<Double> numbers)
+	{
+		double std = Math.sqrt(getVariance(numbers));
+
+		return std;
 	}
 }

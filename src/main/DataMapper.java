@@ -30,7 +30,7 @@ public class DataMapper extends Mapper<LongWritable, Text, Text, DoubleWritable>
 			String outputKeyStr = dependentColumns.size() > 0 ? String.valueOf(lineWords[dependentColumns.get(0)]) : "";
 
 			for (int column = 1; column < dependentColumns.size(); ++column)
-				outputKeyStr += ", " + String.valueOf(lineWords[dependentColumns.get(column)]);
+				outputKeyStr += "," + String.valueOf(lineWords[dependentColumns.get(column)]);
 
 			Text outputKey = new Text(outputKeyStr);
 			DoubleWritable outputValue = new DoubleWritable(Double.parseDouble(lineWords[targetColumn]));
