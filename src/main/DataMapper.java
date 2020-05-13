@@ -22,15 +22,25 @@ public class DataMapper extends Mapper<LongWritable, Text, Text, DoubleWritable>
 		String[] lineWords = value.toString().split(",");
 
 		int targetColumn = Integer.parseInt(context.getConfiguration().get("targetColumn")) - 1;
-		List<Integer> dependentColumns = getDependentColumns(context.getConfiguration().get("dependentColumns"));
-		int maxColumnNumber = getMaxColumnNumber(targetColumn, dependentColumns);
+
+		String dependentColStr = context.getConfiguration().get("dependentColumns");
+		List<Integer> dependentColumns = dependentColStr.equals("-1") ? null : getDependentColumns(dependentColStr);
+
+		int maxColumnNumber = dependentColStr.equals("-1") ? 0 : getMaxColumnNumber(targetColumn, dependentColumns);
 
 		if (isValidRow(lineWords, targetColumn, maxColumnNumber))
 		{
-			String outputKeyStr = dependentColumns.size() > 0 ? String.valueOf(lineWords[dependentColumns.get(0)]) : "";
+			String outputKeyStr;
 
-			for (int column = 1; column < dependentColumns.size(); ++column)
-				outputKeyStr += "," + String.valueOf(lineWords[dependentColumns.get(column)]);
+			if (dependentColStr.equals("-1"))
+				outputKeyStr = "ALL";
+			else
+			{
+				outputKeyStr = String.valueOf(lineWords[dependentColumns.get(0)]);
+
+				for (int column = 1; column < dependentColumns.size(); ++column)
+					outputKeyStr += ", " + String.valueOf(lineWords[dependentColumns.get(column)]);
+			}
 
 			Text outputKey = new Text(outputKeyStr);
 			DoubleWritable outputValue = new DoubleWritable(Double.parseDouble(lineWords[targetColumn]));

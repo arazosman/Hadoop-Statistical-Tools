@@ -25,31 +25,31 @@ public class DataReducer extends Reducer<Text, DoubleWritable, Text, Text>
 		switch (reducerType)
 		{
 			case "sum":
-				outputValue = new Text(String.valueOf(getSum(numbers)));
+				outputValue = new Text("SUM: " + String.valueOf(getSum(numbers)));
 				break;
 			case "min":
-				outputValue = new Text(String.valueOf(getMin(numbers)));
+				outputValue = new Text("MIN: " + String.valueOf(getMin(numbers)));
 				break;
 			case "max":
-				outputValue = new Text(String.valueOf(getMax(numbers)));
+				outputValue = new Text("MAX: " + String.valueOf(getMax(numbers)));
 				break;
 			case "avg":
-				outputValue = new Text(String.valueOf(getAverage(numbers)));
+				outputValue = new Text("AVERAGE: " + String.valueOf(getAverage(numbers)));
 				break;
 			case "med":
-				outputValue = new Text(String.valueOf(getMedian(numbers)));
+				outputValue = new Text("MEDIAN: " + String.valueOf(getMedian(numbers)));
 				break;
 			case "mod":
-				outputValue = new Text(String.valueOf(getMode(numbers)));
+				outputValue = new Text("MODE: " + String.valueOf(getMode(numbers)));
 				break;
 			case "cnt":
-				outputValue = new Text(String.valueOf(numbers.size()));
+				outputValue = new Text("COUNT: " + String.valueOf(numbers.size()));
 				break;
 			case "var":
-				outputValue = new Text(String.valueOf(getVariance(numbers)));
+				outputValue = new Text("VARIANCE: " + String.valueOf(getVariance(numbers)));
 				break;
 			default:
-				outputValue = new Text(String.valueOf(getStdDrv(numbers)));
+				outputValue = new Text("STD: DRV.: " + String.valueOf(getStdDrv(numbers)));
 				break;
 		}
 
