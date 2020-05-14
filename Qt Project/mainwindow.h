@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QProcess>
+#include <QTemporaryDir>
 #include <QUrl>
 
 QT_BEGIN_NAMESPACE
@@ -18,13 +19,13 @@ public:
     ~MainWindow();
 
     void initHadoop();
+    void setTempDir();
     void processCommand(QString command, QStringList args);
     QStringList generateCommandLineArguments();
     QString getStatisticalFunction();
 
 private slots:
     void on_buttonHadoopPath_clicked();
-    void on_buttonMapRedPath_clicked();
     void on_buttonDatasetPath_clicked();
     void on_buttonStart_clicked();
 
@@ -35,6 +36,7 @@ private:
     QString datasetPath;
     QProcess *terminalProcess;
     QString terminalOutput;
+    QTemporaryDir tempDir;
     bool firstTime = true;
 };
 

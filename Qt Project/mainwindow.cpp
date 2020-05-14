@@ -9,6 +9,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setTempDir();
     terminalProcess = new QProcess(this);
 }
 
@@ -22,12 +23,6 @@ void MainWindow::on_buttonHadoopPath_clicked()
     hadoopPath = QFileDialog::getExistingDirectory(this, tr("Select Folder of Hadoop Binary File"), "/home",
                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     ui->buttonHadoopPath->setText(QFile(hadoopPath).fileName());
-}
-
-void MainWindow::on_buttonMapRedPath_clicked()
-{
-    mapredPath = QFileDialog::getOpenFileName(this, tr("Select Dataset File"));
-    ui->buttonMapRedPath->setText(QFile(mapredPath).fileName());
 }
 
 void MainWindow::on_buttonDatasetPath_clicked()
@@ -81,10 +76,20 @@ void MainWindow::processCommand(QString command, QStringList args)
     this->repaint();
 }
 
+void MainWindow::setTempDir()
+{
+    if (tempDir.isValid())
+    {
+        tempDir.autoRemove();
+        mapredPath = tempDir.path() + "/MapReduce.jar";
+        QFile::copy(":/Files/MapReduce.jar", mapredPath);
+    }
+}
+
 QStringList MainWindow::generateCommandLineArguments()
 {
-    QString targetColumn = ui->textTargetColumn->toPlainText().replace(" ", "");
-    QString dependentColumns = ui->textDependentColumns->toPlainText().replace(" ", "");
+    QString targetColumn = ui->textTargetColumn->text().replace(" ", "");
+    QString dependentColumns = ui->textDependentColumns->text().replace(" ", "");
 
     if (dependentColumns.size() == 0)
         dependentColumns = "-1";
