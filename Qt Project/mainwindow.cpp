@@ -71,6 +71,7 @@ void MainWindow::processCommand(QString command, QStringList args)
 {
     terminalProcess->start(command, args);
     terminalProcess->waitForFinished();
+    terminalProcess->terminate();
     terminalOutput.append(terminalProcess->readAll());
     ui->terminal->setText(terminalOutput);
     this->repaint();
