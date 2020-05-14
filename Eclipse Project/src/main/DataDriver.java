@@ -22,7 +22,7 @@ public class DataDriver
 		Configuration conf = new Configuration();
 		
 		// Getting command line arguments:
-		// Usage: "[HADOOP_PATH] jar [PROGRAM_NAME] [DFS_INPUT] [DFS_OUTPUT] [TARGET_COL] [DEPENDENT_COL] [STATISTICAL_FUNC]" 
+		// Usage: "[HADOOP_PATH] jar [PROGRAM_NAME] [DFS_INPUT] [DFS_OUTPUT] [TARGET_COL] [DEPENDENT_COLS] [STATISTICAL_FUNC]" 
 		// Example: "hadoop jar Program.jar input output 1 5,7,12 sum"
 		String[] newArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
